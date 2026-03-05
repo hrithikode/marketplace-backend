@@ -13,17 +13,24 @@ export class AuthService {
         if (existingUser) {
             throw new Error("User already exists");
         }
-        console.log("b");
+        
+        await prisma.otpVerification.deleteMany({
+            where: { email },
+        });
+
         const otp = crypto.randomInt(100000, 999999).toString();
+        const hashedOtp = await bcrypt.hash(otp, 10);
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("c");
+        
+
         const user = await prisma.otpVerification.create({
             data: {
             email,
             name,
             password: hashedPassword,
             role,
-            otp,
+            otp : hashedOtp,
             expiresAt: new Date(Date.now() + 5 * 60 * 1000)
             },
         });
@@ -75,7 +82,7 @@ export class AuthService {
     static async verifyOtp(email: string, otp: string) {
 
         const record = await prisma.otpVerification.findFirst({
-            where: { email, otp },
+            where: { email },
         });
 
         if (!record) {
@@ -84,6 +91,12 @@ export class AuthService {
 
         if (record.expiresAt < new Date()) {
             throw new Error("OTP expired");
+        }
+        
+        const isValid = await bcrypt.compare(otp, record.otp);
+
+        if (!isValid) {
+        throw new Error("Invalid OTP");
         }
 
         const user = await prisma.user.create({
