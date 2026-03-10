@@ -1,13 +1,21 @@
 import { Response } from "express";
 import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { addToCartSchema } from "../validators/cart.validator";
 
 export class CartController {
 
   static async addToCart(req: AuthRequest, res: Response) {
     try {
+      const parsed = addToCartSchema.safeParse(req.body);
 
-      const { productId, quantity } = req.body;
+        if (!parsed.success) {
+        return res.status(400).json({
+            error: parsed.error.issues
+        });
+      }
+
+      const { productId, quantity } = parsed.data;
       const buyerId = req.user!.userId;
 
 
@@ -110,7 +118,7 @@ export class CartController {
   static async removeItem(req: AuthRequest, res: Response) {
     try {
 
-      const id = req.params.id as string;;
+      const id = req.params.id as string;
 
       await prisma.cartItem.delete({
         where: { id }
@@ -122,5 +130,30 @@ export class CartController {
       res.status(400).json({ error: error.message });
     }
   }
+
+  static async updateQuantity(req: AuthRequest, res: Response) {
+
+        try {
+
+            const id = req.params.id as string;
+            const { quantity } = req.body;
+
+            if (quantity <= 0) {
+            return res.status(400).json({
+                error: "Quantity must be greater than 0"
+            });
+            }
+
+            const item = await prisma.cartItem.update({
+            where: { id },
+            data: { quantity }
+            });
+
+            res.json(item);
+
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
 
 }
