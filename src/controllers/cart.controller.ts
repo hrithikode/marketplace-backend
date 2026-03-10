@@ -10,6 +10,16 @@ export class CartController {
       const { productId, quantity } = req.body;
       const buyerId = req.user!.userId;
 
+
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+        include: {shop: true }
+      });
+
+      if (!product) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+
       let cart = await prisma.cart.findUnique({
         where: { buyerId }
       });
@@ -20,12 +30,23 @@ export class CartController {
         });
       }
 
-      const product = await prisma.product.findUnique({
-        where: { id: productId }
+      const cartItems = await prisma.cartItem.findMany({
+        where: { cartId: cart.id },
+        include: {
+            product: true
+        }
       });
 
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
+      if (cartItems.length > 0) {
+
+      const existingShopId = cartItems[0].product.shopId;
+
+        if (existingShopId !== product.shopId) {
+            return res.status(400).json({
+            error: "Cart can only contain products from one shop"
+            });
+        }
+
       }
 
       const existingItem = await prisma.cartItem.findFirst({

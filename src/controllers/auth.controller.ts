@@ -1,11 +1,20 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
+import { loginSchema, registerSchema } from "../validators/auth.validators";
 
 export class AuthController {
     static async register(req: Request, res: Response) {
         try{
-            const { name, email, password, role } = req.body;
-            console.log("a");
+            const parsed = registerSchema.safeParse(req.body);
+
+            if (!parsed.success) {
+            return res.status(400).json({
+                error: parsed.error.issues
+            });
+            }
+
+            const { name, email, password, role } = parsed.data;
+            
             const user = await AuthService.register(name, email, password, role);
 
             res.status(201).json({
@@ -19,7 +28,15 @@ export class AuthController {
 
     static async login( req: Request, res: Response) {
         try {
-            const { email, password } = req.body;
+            const parsed = loginSchema.safeParse(req.body);
+
+            if (!parsed.success) {
+            return res.status(400).json({
+                error: parsed.error.issues
+            });
+            }
+
+            const { email, password } = parsed.data;
 
             const result = await AuthService.login(email, password);
 

@@ -1,13 +1,22 @@
 import { Response } from "express";
 import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { createProductSchema } from "../validators/product.validator";
 
 export class ProductController {
 
   static async createProduct(req: AuthRequest, res: Response) {
     try {
 
-      const { title, description, price, imageUrl } = req.body;
+    const parsed = createProductSchema.safeParse(req.body);
+
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: parsed.error.issues
+        });
+      }
+
+      const { title, description, price, imageUrl } = parsed.data;
 
       const shop = await prisma.shop.findUnique({
         where: { ownerId: req.user!.userId }

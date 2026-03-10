@@ -2,13 +2,22 @@ import { Response } from "express";
 import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth.middleware";
 import  { calculateDistance }  from "../utils/distance";
+import { createShopSchema } from "../validators/shop.validator";
 
 export class ShopController {
 
   static async createShop(req: AuthRequest, res: Response) {
     try {
 
-      const { name, address, latitude, longitude } = req.body;
+      const parsed = createShopSchema.safeParse(req.body);
+
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: parsed.error.issues
+        });
+      }
+
+      const { name, address, latitude, longitude } = parsed.data;
 
       const existingShop = await prisma.shop.findUnique({
         where: { ownerId: req.user!.userId }
