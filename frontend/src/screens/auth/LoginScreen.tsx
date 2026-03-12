@@ -1,12 +1,15 @@
 import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { useState } from "react";
 import { login } from "../../api/auth.api";
+import { useNavigation } from "@react-navigation/native";
 
 export default function LoginScreen() {
 
+  const navigation = useNavigation<any>();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  
   const handleLogin = async () => {
     try {
 
@@ -15,7 +18,14 @@ export default function LoginScreen() {
         password
       });
 
-      console.log(res.data);
+      const { token, user } = res.data;
+      console.log("token", token);
+
+      if (user.role === "BUYER")  {
+        navigation.navigate("Buyer");
+      } else {
+        navigation.navigate("Seller");
+      }
 
     } catch (error) {
       console.log(error);
