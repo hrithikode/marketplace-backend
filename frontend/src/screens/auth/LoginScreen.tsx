@@ -2,6 +2,7 @@ import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { useState } from "react";
 import { login } from "../../api/auth.api";
 import { useNavigation } from "@react-navigation/native";
+import { useAuthStore } from "../../store/auth.store";
 
 export default function LoginScreen() {
 
@@ -9,7 +10,9 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
+
+  const authStore = useAuthStore();
+
   const handleLogin = async () => {
     try {
 
@@ -19,19 +22,13 @@ export default function LoginScreen() {
       });
 
       const { token, user } = res.data;
-      console.log("token", token);
 
-      if (user.role === "BUYER")  {
-        navigation.navigate("Buyer");
-      } else {
-        navigation.navigate("Seller");
-      }
+      await authStore.login(token, user.role);
 
     } catch (error) {
       console.log(error);
     }
   };
-
   return (
     <View style={styles.container}>
 
