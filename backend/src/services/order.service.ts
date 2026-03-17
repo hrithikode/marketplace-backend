@@ -6,16 +6,25 @@ export class OrderService {
 
     const cart = await prisma.cart.findUnique({
       where: { buyerId },
-      include: { items: true }
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        }
+      }
     });
 
     if (!cart || cart.items.length === 0) {
       throw new Error("Cart is empty");
     }
 
+    const shopId = cart.items[0].product.shopId;
+
     const order = await prisma.order.create({
       data: {
         buyerId,
+        shopId,
         paymentMethod
       }
     });
