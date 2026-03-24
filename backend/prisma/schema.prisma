@@ -108,6 +108,8 @@ model Order {
   status        OrderStatus   @default(PENDING)
   paymentMethod PaymentMethod
   items         OrderItem[]
+  buyerLat      Float?
+  buyerLng      Float?
   createdAt     DateTime      @default(now())
 }
 
