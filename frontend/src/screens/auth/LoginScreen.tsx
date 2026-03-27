@@ -1,74 +1,31 @@
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { View, TextInput, Button } from "react-native";
 import { useState } from "react";
 import { login } from "../../api/auth.api";
-import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../store/auth.store";
 
 export default function LoginScreen() {
-
-  const navigation = useNavigation<any>();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const authStore = useAuthStore();
+  const setAuth = useAuthStore((state: any) => state.setAuth);
 
   const handleLogin = async () => {
     try {
+      const data = await login({ email, password });
 
-      const res = await login({
-        email,
-        password
-      });
+      console.log("LOGIN RESPONSE:", data);
 
-      const { token, user } = res.data;
-
-      await authStore.login(token, user.role);
-
-    } catch (error) {
-      console.log(error);
+      setAuth(data.token, data.user.role);
+    } catch (err: any) {
+      console.log("ERROR:", err.response?.data || err.message);
     }
   };
+
   return (
-    <View style={styles.container}>
-
-      <Text style={styles.title}>Login</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        onChangeText={setPassword}
-      />
-
+    <View style={{ padding: 20 }}>
+      <TextInput placeholder="Email" onChangeText={setEmail} />
+      <TextInput placeholder="Password" secureTextEntry onChangeText={setPassword} />
       <Button title="Login" onPress={handleLogin} />
-
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20
-  },
-
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: "center"
-  },
-
-  input: {
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 10
-  }
-});

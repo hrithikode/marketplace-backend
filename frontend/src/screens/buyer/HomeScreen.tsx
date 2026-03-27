@@ -1,78 +1,37 @@
-import { View, Text, FlatList, StyleSheet, TextInput } from "react-native";
-import { useState } from "react";
-import ShopCard from "../../components/ShopCard";
-import { useNavigation } from "@react-navigation/native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 
-export default function HomeScreen() {
+const shops = [
+  { id: "1", name: "Ritik Grocery Store", address: "Near LNCT" },
+  { id: "2", name: "Fresh Fruits Shop", address: "Kolar Road" },
+  { id: "3", name: "Daily Needs Mart", address: "Bhopal" },
+];
 
-  const navigation = useNavigation<any>();
-
-  const [shops] = useState([
-    {
-      id: "1",
-      name: "Cement Store",
-      distance: "1.2 km",
-      rating: 4.5
-    },
-    {
-      id: "2",
-      name: "Building Materials Shop",
-      distance: "2 km",
-      rating: 4.2
-    }
-  ]);
-
+export default function HomeScreen({ navigation }: any) {
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, padding: 10 }}>
+      <Text style={{ fontSize: 22, marginBottom: 10 }}>
+        Nearby Shops
+      </Text>
 
-      {/* 🔥 Header */}
-      <Text style={styles.header}>Nearby Shops</Text>
-
-      {/* 🔥 Search Bar */}
-      <TextInput
-        placeholder="Search shops..."
-        style={styles.search}
-      />
-
-      {/* 🔥 Shop List */}
       <FlatList
         data={shops}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ShopCard
-            name={item.name}
-            distance={item.distance}
-            rating={item.rating}
-            onPress={() =>
-              navigation.navigate("Shop", { shopId: item.id })
-            }
-          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Shop", { shop: item })}
+            style={{
+              padding: 15,
+              marginBottom: 10,
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              elevation: 3,
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>{item.name}</Text>
+            <Text style={{ color: "gray" }}>{item.address}</Text>
+          </TouchableOpacity>
         )}
       />
-
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#f5f5f5"
-  },
-
-  header: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 12
-  },
-
-  search: {
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 16
-  }
-
-});

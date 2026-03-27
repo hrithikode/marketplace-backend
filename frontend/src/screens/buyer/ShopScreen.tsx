@@ -1,72 +1,62 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
-import { useRoute } from "@react-navigation/native";
-import ProductCard from "../../components/ProductCard";
-import { addToCart } from "../../api/cart.api";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { useCartStore } from "../../store/cart.store";
 
 const products = [
-  {
-    id: "1",
-    title: "Cement Bag",
-    price: 350
-  },
-  {
-    id: "2",
-    title: "Sand (1 Ton)",
-    price: 1200
-  }
+  { id: "1", name: "Milk", price: 50 },
+  { id: "2", name: "Bread", price: 30 },
+  { id: "3", name: "Eggs", price: 80 },
 ];
 
-export default function ShopScreen() {
+export default function ShopScreen({ route }: any) {
+  const shop = route.params?.shop;
 
-  const route = useRoute<any>();
-  const { shopId } = route.params;
-
-  const handleAddToCart = async (productId: string) => {
-    try {
-
-      await addToCart({
-        productId,
-        quantity: 1
-      });
-
-      console.log("Added to cart");
-
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+  const addToCart = useCartStore((state: any) => state.addToCart);
+    const cart = useCartStore((state: any) => state.cart);
+console.log("CART:", cart);
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, padding: 10 }}>
+      <Text style={{ fontSize: 22 }}>{shop?.name}</Text>
+      <Text style={{ color: "gray", marginBottom: 10 }}>
+        {shop?.address}
+      </Text>
 
-      <Text style={styles.title}>Shop ID: {shopId}</Text>
-
+      <Text style={{ fontSize: 18, marginVertical: 10 }}>
+        Cart Items: {cart.length}
+      </Text>
+      
       <FlatList
         data={products}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ProductCard
-            title={item.title}
-            price={item.price}
-            onAddToCart={() => handleAddToCart(item.id)}
-          />
+          <View
+            style={{
+              padding: 15,
+              marginBottom: 10,
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              elevation: 3,
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <View>
+              <Text style={{ fontSize: 16 }}>{item.name}</Text>
+              <Text style={{ color: "gray" }}>₹{item.price}</Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => addToCart(item)}
+              style={{
+                backgroundColor: "black",
+                padding: 8,
+                borderRadius: 5,
+              }}
+            >
+              <Text style={{ color: "white" }}>Add</Text>
+            </TouchableOpacity>
+          </View>
         )}
       />
-
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20
-  },
-
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20
-  }
-});
-
